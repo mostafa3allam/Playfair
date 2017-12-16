@@ -1,6 +1,21 @@
 #include<stdio.h>
 #define size 100
 #define ksize 30
+void decplainedit(char plain[]){
+	int x=0;
+	for(int i=0;plain[i]!='\0';i++){
+			//we cipher 2 letters by 2 letters. if the 2 letters consists of the same letter,
+			//these instructions are responsible for putting an 'x' between the 2 letters
+			if(plain[i]=='x'){
+				if(plain[i+1]=='\0')
+					plain[i]='\0';
+				else if(plain[i-1]==plain[i+1])
+					for(int j=i;plain[j]!=0;j++)
+						plain[j]=plain[j+1];
+			}
+			x++;
+		}
+}
 //call the function responsible for editing the plain text
 void plainedit(char plain[]){
 	char newplain[size];
@@ -84,10 +99,10 @@ void makedistinct(char key[]){
 			else{
 				//if the character is found in the entered string, it checks whether
 				//it's in the string newkey or not
-				int xyz=0;
+				char xyz=0;
 				for(int j=0;j<x;j++)
 					if(current==newkey[j])
-						xyz++;
+						xyz=1;
 				//if the character isn't is the string newkey, it's added to it
 				if(xyz==0){
 					newkey[x]=current;
@@ -126,6 +141,68 @@ void makedistinct(char key[]){
 		for(int i=0;newkey[i]!='\0';i++)
 			key[i]=newkey[i];
 		key[x]=newkey[x];
+}
+//the decryption function
+void decrypt(char cipher[],char cmatrix[5][6]){
+	char plain[size];
+	int a,b,c,d,x;
+	for(int i=0;cipher[i]!='\0';i=i+2){
+		//gets the indexes of each letter(in the 2D matrix) of the 2 letters we decrypt at a time
+		for(int n=0;n<5;n++)
+			for(int m=0;m<5;m++){
+				if(cipher[i]==cmatrix[n][m]){
+					a=n;
+					b=m;
+				}
+				if(cipher[i+1]==cmatrix[n][m]){
+					c=n;
+					d=m;
+				}
+			}
+		//if the 2 letters in the same row, each letter is moved left by 1
+		//if one of the letters is already at the leftmost position of the row, then we have
+		//the rightmost of the row
+		if(a==c){
+			if(b>0)
+				b--;
+			else
+				b=4;
+			if(d>0)
+				d--;
+			else
+				d=4;
+		}
+		//if the 2 letters in the same column, each letter is moved up by 1
+		//if one of the letters is already at the top of the column, then we have
+		//the last one of the column
+		else if(b==d){
+			if(a>0)
+				a--;
+			else
+				a=4;
+			if(c>0)
+				c--;
+			else
+				c=4;
+		}
+		//if it forms a rectangular, we swap the letters with the ones in each corner
+		//of the rectangular(each letter must be swapped with the one in its row)
+		else{
+			int temp=d;
+			d=b;
+			b=temp;
+		}
+		//get the letters from the matrix into the plain string
+		plain[i]=cmatrix[a][b];
+		plain[i+1]=cmatrix[c][d];
+		x=i+2;
+	}
+	plain[x]='\0';
+	//call the function responsible for editing the plain text
+	decplainedit(plain);
+	//prints the Plain text
+	puts("PlainText is:");
+	puts(plain);
 }
 //the ciphering function
 void playfair(char plain[],char cmatrix[5][6]){
@@ -190,26 +267,53 @@ void playfair(char plain[],char cmatrix[5][6]){
 int main(){
 		setvbuf(stdout, NULL, _IONBF, 0);
 		setvbuf(stderr, NULL, _IONBF, 0);
-		char plain[size],key[ksize];
-		//Get the original text and the key
-		puts("Enter the plain text: \n");
-		gets(plain);
-		puts("Enter the key: \n");
-		gets(key);
-		//prints the original plain text before editing
-		puts("PlainText is: ");
-		puts(plain);
-		/*call the function responsible for
-		making the key distinct and adding the rest of the alphabets to it*/
-		makedistinct(key);
-		char cmatrix[5][6]={0};
-		/*call the function responsible for
-		putting the string of the key and alphabets in the matrix*/
-		matrixx(key,cmatrix);
-		//call the function responsible for editing the plain text
-		plainedit(plain);
-		//call the ciphering function
-		playfair(plain,cmatrix);
+		char inp;
+		puts("Please enter E for encryption and D for decryption: ");
+		gets(&inp);
+		if(inp==69||inp==101){
+			char plain[size],key[ksize];
+			//Get the original text and the text
+			puts("Enter the plain text: \n");
+			gets(plain);
+			puts("Enter the key: \n");
+			gets(key);
+			//prints the original plain text before editing
+			puts("PlainText is: ");
+			puts(plain);
+			/*call the function responsible for
+			making the key distinct and adding the rest of the alphabets to it*/
+			makedistinct(key);
+			char cmatrix[5][6]={0};
+			/*call the function responsible for
+			putting the string of the key and alphabets in the matrix*/
+			matrixx(key,cmatrix);
+			//call the function responsible for editing the plain text
+			plainedit(plain);
+			//call the ciphering function
+			playfair(plain,cmatrix);
+		}
+		else if(inp==68||inp==100){
+			char cipher[size],key[ksize];
+			//Get the original text and the key
+			puts("Enter the cipher text: \n");
+			gets(cipher);
+			puts("Enter the key: \n");
+			gets(key);
+			//prints the original cipher text before editing
+			puts("CipherText is: ");
+			puts(cipher);
+			/*call the function responsible for
+			making the key distinct and adding the rest of the alphabets to it*/
+			makedistinct(key);
+			char cmatrix[5][6]={0};
+			/*call the function responsible for
+			putting the string of the key and alphabets in the matrix*/
+			matrixx(key,cmatrix);
+			//call the decryption function
+			decrypt(cipher,cmatrix);
+		}
+		else
+			puts("ERROR You have entered a wrong character");
 		//End of the program
 		return 0;
 }
